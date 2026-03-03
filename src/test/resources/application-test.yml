@@ -5,9 +5,14 @@ spring:
     password:
     driver-class-name: org.h2.Driver
 
+  sql:
+    init:
+      mode: never  # desabilita data.sql nos testes de integração
+
   jpa:
     hibernate:
       ddl-auto: create-drop
+    defer-datasource-initialization: false
     show-sql: false
     properties:
       hibernate:
