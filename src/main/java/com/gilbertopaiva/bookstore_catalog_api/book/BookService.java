@@ -7,7 +7,11 @@ import com.gilbertopaiva.bookstore_catalog_api.book.exception.BookNotFoundExcept
 import com.gilbertopaiva.bookstore_catalog_api.category.Category;
 import com.gilbertopaiva.bookstore_catalog_api.category.CategoryRepository;
 import com.gilbertopaiva.bookstore_catalog_api.category.exception.CategoryNotFoundException;
+import com.gilbertopaiva.bookstore_catalog_api.config.CacheConfig;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,12 +25,16 @@ public class BookService {
     private final BookRepository bookRepository;
     private final CategoryRepository categoryRepository;
 
+
+    @Cacheable(value = CacheConfig.CACHE_BOOKS, key = "#filter.toString() + #pageable.toString()")
     @Transactional(readOnly = true)
     public Page<BookResponse> listBooks(BookFilter filter, Pageable pageable) {
         return bookRepository.findAll(BookSpecification.withFilters(filter), pageable)
                 .map(BookResponse::from);
     }
 
+
+    @Cacheable(value = CacheConfig.CACHE_BOOK, key = "#id")
     @Transactional(readOnly = true)
     public BookResponse findById(Long id) {
         Book book = bookRepository.findById(id)
@@ -34,6 +42,8 @@ public class BookService {
         return BookResponse.from(book);
     }
 
+
+    @CacheEvict(value = CacheConfig.CACHE_BOOKS, allEntries = true)
     @Transactional
     public BookResponse create(BookRequest request) {
         Category category = categoryRepository.findById(request.categoryId())
@@ -53,6 +63,11 @@ public class BookService {
         return BookResponse.from(bookRepository.save(book));
     }
 
+
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.CACHE_BOOK,  key = "#id"),
+            @CacheEvict(value = CacheConfig.CACHE_BOOKS, allEntries = true)
+    })
     @Transactional
     public BookResponse update(Long id, BookRequest request) {
         Book book = bookRepository.findById(id)
@@ -73,6 +88,11 @@ public class BookService {
         return BookResponse.from(bookRepository.save(book));
     }
 
+
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.CACHE_BOOK,  key = "#id"),
+            @CacheEvict(value = CacheConfig.CACHE_BOOKS, allEntries = true)
+    })
     @Transactional
     public void delete(Long id) {
         if (!bookRepository.existsById(id)) {
@@ -81,4 +101,3 @@ public class BookService {
         bookRepository.deleteById(id);
     }
 }
-
