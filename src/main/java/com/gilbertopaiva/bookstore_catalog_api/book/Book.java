@@ -12,6 +12,17 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "books")
+/*
+ * SOLUÇÃO N+1: sem @NamedEntityGraph, ao buscar N livros o Hibernate disparava
+ * 1 query para listar os livros + N queries adicionais para carregar a category
+ * de cada um (pois o relacionamento é LAZY). Com @NamedEntityGraph declaramos
+ * um "plano de carregamento" que o repositório usa para fazer um único
+ * JOIN FETCH, independentemente do FetchType definido no campo.
+ */
+@NamedEntityGraph(
+        name = "Book.category",
+        attributeNodes = @NamedAttributeNode("category")
+)
 @Getter
 @Setter
 @NoArgsConstructor
