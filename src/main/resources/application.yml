@@ -2,6 +2,12 @@ spring:
   application:
     name: bookstore-catalog-api
 
+  data:
+    web:
+      pageable:
+        default-page-size: 10
+        max-page-size: 100
+
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:bookstore_db}
     username: ${DB_USER:postgres}

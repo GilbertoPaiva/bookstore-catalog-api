@@ -1,5 +1,6 @@
 package com.gilbertopaiva.bookstore_catalog_api.book;
 
+import com.gilbertopaiva.bookstore_catalog_api.book.dto.BookFilter;
 import com.gilbertopaiva.bookstore_catalog_api.book.dto.BookRequest;
 import com.gilbertopaiva.bookstore_catalog_api.book.dto.BookResponse;
 import com.gilbertopaiva.bookstore_catalog_api.book.exception.BookNotFoundException;
@@ -7,10 +8,11 @@ import com.gilbertopaiva.bookstore_catalog_api.category.Category;
 import com.gilbertopaiva.bookstore_catalog_api.category.CategoryRepository;
 import com.gilbertopaiva.bookstore_catalog_api.category.exception.CategoryNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -20,11 +22,9 @@ public class BookService {
     private final CategoryRepository categoryRepository;
 
     @Transactional(readOnly = true)
-    public List<BookResponse> findAll() {
-        return bookRepository.findAll()
-                .stream()
-                .map(BookResponse::from)
-                .toList();
+    public Page<BookResponse> listBooks(BookFilter filter, Pageable pageable) {
+        return bookRepository.findAll(BookSpecification.withFilters(filter), pageable)
+                .map(BookResponse::from);
     }
 
     @Transactional(readOnly = true)
