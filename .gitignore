@@ -35,3 +35,14 @@ build/
 ### Environment variables ###
 .env
 
+### Logs ###
+*.log
+logs/
+
+### OS ###
+.DS_Store
+Thumbs.db
+
+### Docker ###
+docker-compose.override.yml
+
