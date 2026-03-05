@@ -10,7 +10,7 @@
 
 API REST de catálogo de livros construída como **Projeto #3 do portfólio**. Foco em
 Cache com Caffeine, paginação e filtros avançados com Spring Data, resolução do problema
-N+1 com `@EntityGraph`, Docker Compose e testes de integração com `@SpringBootTest`.
+N+1 com `@EntityGraph`, IDs como **UUID**, Docker Compose e testes de integração com `@SpringBootTest`.
 
 ---
 
@@ -27,6 +27,7 @@ N+1 com `@EntityGraph`, Docker Compose e testes de integração com `@SpringBoot
 | Testes         | JUnit 5 + Mockito + MockMvc (H2)        |
 | Containerização| Docker + Docker Compose                 |
 | Deploy         | Railway                                 |
+| Produção (Swagger) | [Swagger UI](http://209.97.147.6/bookstore/swagger-ui/index.html) |
 
 ---
 
@@ -36,8 +37,8 @@ N+1 com `@EntityGraph`, Docker Compose e testes de integração com `@SpringBoot
 ┌──────────────────────────┐          ┌─────────────────────────────┐
 │         categories       │          │           books             │
 ├──────────────────────────┤          ├─────────────────────────────┤
-│ id           BIGSERIAL PK│◄────┐    │ id            BIGSERIAL PK  │
-│ name         VARCHAR(100)│     └────│ category_id   BIGINT FK     │
+│ id           UUID PK     │◄────┐    │ id            UUID PK       │
+│ name         VARCHAR(100)│     └────│ category_id   UUID FK       │
 │ description  VARCHAR(500)│          │ title         VARCHAR(255)  │
 └──────────────────────────┘          │ author        VARCHAR(255)  │
                                       │ isbn          VARCHAR(20) UQ│
@@ -82,7 +83,7 @@ Relacionamento: `Book` **N → 1** `Category` (ManyToOne, LAZY + `@EntityGraph` 
 | Parâmetro    | Tipo       | Descrição                              |
 |--------------|------------|----------------------------------------|
 | `title`      | String     | Filtra por título (like, case-insensitive) |
-| `categoryId` | Long       | Filtra por ID de categoria             |
+| `categoryId` | UUID       | Filtra por ID de categoria             |
 | `minPrice`   | BigDecimal | Preço mínimo (inclusive)               |
 | `maxPrice`   | BigDecimal | Preço máximo (inclusive)               |
 | `page`       | int        | Número da página (padrão: 0)           |
@@ -167,7 +168,7 @@ Copie `.env.example` para `.env` e preencha os valores antes de rodar.
 **Response 201**
 ```json
 {
-  "id": 1,
+  "id": "ac120002-9cbe-1640-819c-be89b6790000",
   "name": "Technology",
   "description": "Books about software, hardware and computing"
 }
@@ -185,13 +186,13 @@ Copie `.env.example` para `.env` e preencha os valores antes de rodar.
   "stockQuantity": 10,
   "description": "A handbook of agile software craftsmanship",
   "publishedYear": 2008,
-  "categoryId": 1
+  "categoryId": "ac120002-9cbe-1640-819c-be89b6790000"
 }
 ```
 **Response 201**
 ```json
 {
-  "id": 1,
+  "id": "bc230003-adcf-2751-920d-cf9a07801111",
   "title": "Clean Code",
   "author": "Robert C. Martin",
   "isbn": "9780132350884",
@@ -199,7 +200,7 @@ Copie `.env.example` para `.env` e preencha os valores antes de rodar.
   "stockQuantity": 10,
   "description": "A handbook of agile software craftsmanship",
   "publishedYear": 2008,
-  "categoryId": 1,
+  "categoryId": "ac120002-9cbe-1640-819c-be89b6790000",
   "categoryName": "Technology",
   "createdAt": "2026-03-02T10:00:00",
   "updatedAt": "2026-03-02T10:00:00"
@@ -215,7 +216,7 @@ Copie `.env.example` para `.env` e preencha os valores antes de rodar.
 {
   "content": [
     {
-      "id": 1,
+      "id": "bc230003-adcf-2751-920d-cf9a07801111",
       "title": "Clean Code",
       "author": "Robert C. Martin",
       "isbn": "9780132350884",
