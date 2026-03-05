@@ -1,6 +1,8 @@
 package com.gilbertopaiva.bookstore_catalog_api.exception;
 
+import com.gilbertopaiva.bookstore_catalog_api.book.exception.BookAlreadyExistsException;
 import com.gilbertopaiva.bookstore_catalog_api.book.exception.BookNotFoundException;
+import com.gilbertopaiva.bookstore_catalog_api.category.exception.CategoryAlreadyExistsException;
 import com.gilbertopaiva.bookstore_catalog_api.category.exception.CategoryNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -32,6 +34,22 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(ErrorResponse.of(404, "Not Found", ex.getMessage(), request.getRequestURI()));
+    }
+
+    @ExceptionHandler(CategoryAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handleCategoryAlreadyExists(
+            CategoryAlreadyExistsException ex, HttpServletRequest request) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(ErrorResponse.of(409, "Conflict", ex.getMessage(), request.getRequestURI()));
+    }
+
+    @ExceptionHandler(BookAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handleBookAlreadyExists(
+            BookAlreadyExistsException ex, HttpServletRequest request) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(ErrorResponse.of(409, "Conflict", ex.getMessage(), request.getRequestURI()));
     }
 
 

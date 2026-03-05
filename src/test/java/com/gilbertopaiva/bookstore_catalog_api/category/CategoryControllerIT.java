@@ -50,6 +50,20 @@ class CategoryControllerIT {
     }
 
     @Test
+    @DisplayName("POST /categories → 409 quando nome da categoria já existe")
+    void shouldReturn409_whenCategoryNameAlreadyExists() throws Exception {
+        categoryRepository.save(Category.builder().name("Fiction").description("Old description").build());
+        CategoryRequest request = new CategoryRequest("Fiction", "New description");
+
+        mockMvc.perform(post("/categories")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.message").value(containsString("Category already exists")));
+    }
+
+    @Test
     @DisplayName("POST /categories → 422 quando nome está em branco")
     void shouldReturn422_whenNameIsBlank() throws Exception {
         CategoryRequest request = new CategoryRequest("", "Some description");
@@ -81,7 +95,7 @@ class CategoryControllerIT {
 
         mockMvc.perform(get("/categories/{id}", saved.getId()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(saved.getId()))
+                .andExpect(jsonPath("$.id").value(saved.getId().toString()))
                 .andExpect(jsonPath("$.name").value("Fiction"));
     }
 
@@ -108,6 +122,21 @@ class CategoryControllerIT {
                         .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Science Fiction"));
+    }
+
+    @Test
+    @DisplayName("PUT /categories/{id} → 409 quando tenta atualizar para nome já existente")
+    void shouldReturn409_whenUpdatingToExistingName() throws Exception {
+        categoryRepository.save(Category.builder().name("Fiction").description("Desc").build());
+        Category saved = categoryRepository.save(
+                Category.builder().name("Science").description("Desc").build());
+
+        CategoryRequest updateRequest = new CategoryRequest("Fiction", "Updated");
+
+        mockMvc.perform(put("/categories/{id}", saved.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isConflict());
     }
 
     @Test

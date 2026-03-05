@@ -2,6 +2,7 @@ package com.gilbertopaiva.bookstore_catalog_api.category;
 
 import com.gilbertopaiva.bookstore_catalog_api.category.dto.CategoryRequest;
 import com.gilbertopaiva.bookstore_catalog_api.category.dto.CategoryResponse;
+import com.gilbertopaiva.bookstore_catalog_api.category.exception.CategoryAlreadyExistsException;
 import com.gilbertopaiva.bookstore_catalog_api.category.exception.CategoryNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,9 @@ public class CategoryService {
 
     @Transactional
     public CategoryResponse create(CategoryRequest request) {
+        if (categoryRepository.existsByNameIgnoreCase(request.name())) {
+            throw new CategoryAlreadyExistsException(request.name());
+        }
         Category category = Category.builder()
                 .name(request.name())
                 .description(request.description())
@@ -44,6 +48,11 @@ public class CategoryService {
     public CategoryResponse update(UUID id, CategoryRequest request) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new CategoryNotFoundException(id));
+
+        if (categoryRepository.existsByNameIgnoreCaseAndIdNot(request.name(), id)) {
+            throw new CategoryAlreadyExistsException(request.name());
+        }
+
         category.setName(request.name());
         category.setDescription(request.description());
         return CategoryResponse.from(categoryRepository.save(category));

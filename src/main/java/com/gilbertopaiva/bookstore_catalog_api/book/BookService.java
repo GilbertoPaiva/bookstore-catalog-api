@@ -3,6 +3,7 @@ package com.gilbertopaiva.bookstore_catalog_api.book;
 import com.gilbertopaiva.bookstore_catalog_api.book.dto.BookFilter;
 import com.gilbertopaiva.bookstore_catalog_api.book.dto.BookRequest;
 import com.gilbertopaiva.bookstore_catalog_api.book.dto.BookResponse;
+import com.gilbertopaiva.bookstore_catalog_api.book.exception.BookAlreadyExistsException;
 import com.gilbertopaiva.bookstore_catalog_api.book.exception.BookNotFoundException;
 import com.gilbertopaiva.bookstore_catalog_api.category.Category;
 import com.gilbertopaiva.bookstore_catalog_api.category.CategoryRepository;
@@ -47,6 +48,10 @@ public class BookService {
     @CacheEvict(value = CacheConfig.CACHE_BOOKS, allEntries = true)
     @Transactional
     public BookResponse create(BookRequest request) {
+        if (bookRepository.existsByIsbn(request.isbn())) {
+            throw new BookAlreadyExistsException(request.isbn());
+        }
+
         Category category = categoryRepository.findById(request.categoryId())
                 .orElseThrow(() -> new CategoryNotFoundException(request.categoryId()));
 
@@ -73,6 +78,10 @@ public class BookService {
     public BookResponse update(UUID id, BookRequest request) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new BookNotFoundException(id));
+
+        if (bookRepository.existsByIsbnAndIdNot(request.isbn(), id)) {
+            throw new BookAlreadyExistsException(request.isbn());
+        }
 
         Category category = categoryRepository.findById(request.categoryId())
                 .orElseThrow(() -> new CategoryNotFoundException(request.categoryId()));

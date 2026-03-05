@@ -2,6 +2,7 @@ package com.gilbertopaiva.bookstore_catalog_api.category;
 
 import com.gilbertopaiva.bookstore_catalog_api.category.dto.CategoryRequest;
 import com.gilbertopaiva.bookstore_catalog_api.category.dto.CategoryResponse;
+import com.gilbertopaiva.bookstore_catalog_api.category.exception.CategoryAlreadyExistsException;
 import com.gilbertopaiva.bookstore_catalog_api.category.exception.CategoryNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -121,6 +122,18 @@ class CategoryServiceTest {
             assertThat(response.description()).isEqualTo("Fiction books");
             verify(categoryRepository).save(any(Category.class));
         }
+
+        @Test
+        @DisplayName("deve lançar CategoryAlreadyExistsException quando categoria com mesmo nome já existe")
+        void shouldThrowCategoryAlreadyExistsException_whenNameAlreadyExists() {
+            when(categoryRepository.existsByNameIgnoreCase(categoryRequest.name())).thenReturn(true);
+
+            assertThatThrownBy(() -> categoryService.create(categoryRequest))
+                    .isInstanceOf(CategoryAlreadyExistsException.class)
+                    .hasMessageContaining(categoryRequest.name());
+
+            verify(categoryRepository, never()).save(any());
+        }
     }
 
 
@@ -144,6 +157,20 @@ class CategoryServiceTest {
             assertThat(response.description()).isEqualTo("Sci-Fi books");
             verify(categoryRepository).findById(CATEGORY_ID);
             verify(categoryRepository).save(any(Category.class));
+        }
+
+        @Test
+        @DisplayName("deve lançar CategoryAlreadyExistsException quando tenta atualizar para um nome que já existe em outra categoria")
+        void shouldThrowCategoryAlreadyExistsException_whenUpdatingToExistingName() {
+            CategoryRequest updateRequest = new CategoryRequest("Existing Category", "Description");
+            when(categoryRepository.findById(CATEGORY_ID)).thenReturn(Optional.of(category));
+            when(categoryRepository.existsByNameIgnoreCaseAndIdNot("Existing Category", CATEGORY_ID)).thenReturn(true);
+
+            assertThatThrownBy(() -> categoryService.update(CATEGORY_ID, updateRequest))
+                    .isInstanceOf(CategoryAlreadyExistsException.class)
+                    .hasMessageContaining("Existing Category");
+
+            verify(categoryRepository, never()).save(any());
         }
 
         @Test

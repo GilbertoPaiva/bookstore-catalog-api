@@ -3,6 +3,7 @@ package com.gilbertopaiva.bookstore_catalog_api.book;
 import com.gilbertopaiva.bookstore_catalog_api.book.dto.BookFilter;
 import com.gilbertopaiva.bookstore_catalog_api.book.dto.BookRequest;
 import com.gilbertopaiva.bookstore_catalog_api.book.dto.BookResponse;
+import com.gilbertopaiva.bookstore_catalog_api.book.exception.BookAlreadyExistsException;
 import com.gilbertopaiva.bookstore_catalog_api.book.exception.BookNotFoundException;
 import com.gilbertopaiva.bookstore_catalog_api.category.Category;
 import com.gilbertopaiva.bookstore_catalog_api.category.CategoryRepository;
@@ -171,6 +172,18 @@ class BookServiceTest {
         }
 
         @Test
+        @DisplayName("deve lançar BookAlreadyExistsException quando ISBN já existe")
+        void shouldThrowBookAlreadyExistsException_whenIsbnAlreadyExists() {
+            when(bookRepository.existsByIsbn(bookRequest.isbn())).thenReturn(true);
+
+            assertThatThrownBy(() -> bookService.create(bookRequest))
+                    .isInstanceOf(BookAlreadyExistsException.class)
+                    .hasMessageContaining(bookRequest.isbn());
+
+            verify(bookRepository, never()).save(any());
+        }
+
+        @Test
         @DisplayName("deve lançar CategoryNotFoundException quando categoria não existe")
         void shouldThrowCategoryNotFoundException_whenCategoryNotFound() {
             when(categoryRepository.findById(CATEGORY_ID)).thenReturn(Optional.empty());
@@ -218,6 +231,24 @@ class BookServiceTest {
             assertThat(response.title()).isEqualTo("Clean Code 2nd Ed");
             assertThat(response.price()).isEqualByComparingTo("69.90");
             verify(bookRepository).save(any(Book.class));
+        }
+
+        @Test
+        @DisplayName("deve lançar BookAlreadyExistsException quando tenta atualizar para um ISBN que já existe em outro livro")
+        void shouldThrowBookAlreadyExistsException_whenUpdatingToExistingIsbn() {
+            BookRequest updateRequest = new BookRequest(
+                    "Title", "Author", "9999999999999", new BigDecimal("10.00"),
+                    1, "Description", 2024, CATEGORY_ID
+            );
+
+            when(bookRepository.findById(BOOK_ID)).thenReturn(Optional.of(book));
+            when(bookRepository.existsByIsbnAndIdNot("9999999999999", BOOK_ID)).thenReturn(true);
+
+            assertThatThrownBy(() -> bookService.update(BOOK_ID, updateRequest))
+                    .isInstanceOf(BookAlreadyExistsException.class)
+                    .hasMessageContaining("9999999999999");
+
+            verify(bookRepository, never()).save(any());
         }
 
         @Test
