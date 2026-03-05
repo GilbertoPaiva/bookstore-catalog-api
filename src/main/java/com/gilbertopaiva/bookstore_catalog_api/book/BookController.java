@@ -21,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Tag(name = "Books", description = "CRUD de livros com paginação, filtros e cache")
 @RestController
@@ -37,7 +38,7 @@ public class BookController {
     @GetMapping
     public ResponseEntity<Page<BookResponse>> listBooks(
             @Parameter(description = "Filtro por título (case insensitive, like)") @RequestParam(required = false) String title,
-            @Parameter(description = "Filtro por ID de categoria") @RequestParam(required = false) Long categoryId,
+            @Parameter(description = "Filtro por ID de categoria") @RequestParam(required = false) UUID categoryId,
             @Parameter(description = "Preço mínimo (inclusive)") @RequestParam(required = false) BigDecimal minPrice,
             @Parameter(description = "Preço máximo (inclusive)") @RequestParam(required = false) BigDecimal maxPrice,
             @PageableDefault(size = 10, sort = "title") Pageable pageable) {
@@ -53,7 +54,7 @@ public class BookController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("/{id}")
-    public ResponseEntity<BookResponse> findById(@PathVariable Long id) {
+    public ResponseEntity<BookResponse> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(bookService.findById(id));
     }
 
@@ -82,7 +83,7 @@ public class BookController {
     })
     @PutMapping("/{id}")
     public ResponseEntity<BookResponse> update(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             @Valid @RequestBody BookRequest request) {
         return ResponseEntity.ok(bookService.update(id, request));
     }
@@ -94,7 +95,7 @@ public class BookController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
         bookService.delete(id);
         return ResponseEntity.noContent().build();
     }

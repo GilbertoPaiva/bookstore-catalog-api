@@ -2,8 +2,10 @@ package com.gilbertopaiva.bookstore_catalog_api.category.dto;
 
 import com.gilbertopaiva.bookstore_catalog_api.category.Category;
 
+import java.util.UUID;
+
 public record CategoryResponse(
-        Long id,
+        UUID id,
         String name,
         String description
 ) {

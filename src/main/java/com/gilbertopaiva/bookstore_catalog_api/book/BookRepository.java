@@ -9,9 +9,10 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface BookRepository extends JpaRepository<Book, Long>, JpaSpecificationExecutor<Book> {
+public interface BookRepository extends JpaRepository<Book, UUID>, JpaSpecificationExecutor<Book> {
 
     /*
      * SOLUÇÃO N+1: @EntityGraph("Book.category") instrui o Hibernate a fazer
@@ -23,6 +24,6 @@ public interface BookRepository extends JpaRepository<Book, Long>, JpaSpecificat
     Page<Book> findAll(Specification<Book> spec, Pageable pageable);
 
     @EntityGraph("Book.category")
-    Optional<Book> findById(Long id);
+    Optional<Book> findById(UUID id);
 }
 

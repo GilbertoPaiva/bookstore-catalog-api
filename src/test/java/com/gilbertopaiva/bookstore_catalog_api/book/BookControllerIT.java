@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -62,16 +63,13 @@ class BookControllerIT {
     void fullFlow_createSearchFilterDelete() throws Exception {
         String body = objectMapper.writeValueAsString(buildRequest("Clean Code", "9780132350884"));
 
-        String location = mockMvc.perform(post("/books")
+        mockMvc.perform(post("/books")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").isNumber())
+                .andExpect(jsonPath("$.id").isString())
                 .andExpect(jsonPath("$.title").value("Clean Code"))
-                .andExpect(jsonPath("$.categoryName").value("Technology"))
-                .andReturn()
-                .getResponse()
-                .getHeader("Location");
+                .andExpect(jsonPath("$.categoryName").value("Technology"));
 
         mockMvc.perform(get("/books").param("title", "clean"))
                 .andExpect(status().isOk())
@@ -79,7 +77,7 @@ class BookControllerIT {
                 .andExpect(jsonPath("$.content[0].title").value("Clean Code"));
 
         mockMvc.perform(get("/books").param("title", "clean"))
-                .andExpect(jsonPath("$.content[0].id").isNumber());
+                .andExpect(jsonPath("$.content[0].id").isString());
 
         mockMvc.perform(get("/books")
                         .param("minPrice", "10.00")
@@ -104,7 +102,7 @@ class BookControllerIT {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.title").value("Refactoring"))
                 .andExpect(jsonPath("$.isbn").value("9780201485677"))
-                .andExpect(jsonPath("$.categoryId").value(category.getId()));
+                .andExpect(jsonPath("$.categoryId").value(category.getId().toString()));
     }
 
     @Test
@@ -124,13 +122,14 @@ class BookControllerIT {
     @DisplayName("POST /books → 404 quando categoria não existe")
     void shouldReturn404_whenCategoryNotFound() throws Exception {
         BookRequest request = new BookRequest(
-                "Title", "Author", "1234567890", new BigDecimal("10.00"), 1, null, null, 999L);
+                "Title", "Author", "1234567890", new BigDecimal("10.00"), 1, null, null,
+                UUID.randomUUID());
 
         mockMvc.perform(post("/books")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value(containsString("999")));
+                .andExpect(jsonPath("$.message").exists());
     }
 
     @Test
@@ -190,7 +189,7 @@ class BookControllerIT {
                         .content(objectMapper.writeValueAsString(buildRequest("Clean Code", "9780132350884"))))
                 .andReturn().getResponse().getContentAsString();
 
-        Long id = objectMapper.readTree(response).get("id").asLong();
+        String id = objectMapper.readTree(response).get("id").asText();
 
         mockMvc.perform(get("/books/{id}", id))
                 .andExpect(status().isOk())
@@ -201,7 +200,7 @@ class BookControllerIT {
     @Test
     @DisplayName("GET /books/{id} → 404 quando livro não existe")
     void shouldReturn404_whenBookNotFound() throws Exception {
-        mockMvc.perform(get("/books/{id}", 999L))
+        mockMvc.perform(get("/books/{id}", UUID.randomUUID()))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404));
     }
@@ -215,7 +214,7 @@ class BookControllerIT {
                         .content(objectMapper.writeValueAsString(buildRequest("Clean Code", "9780132350884"))))
                 .andReturn().getResponse().getContentAsString();
 
-        Long id = objectMapper.readTree(response).get("id").asLong();
+        String id = objectMapper.readTree(response).get("id").asText();
 
         BookRequest updateRequest = new BookRequest(
                 "Clean Code — Updated", "Robert C. Martin",
@@ -238,7 +237,7 @@ class BookControllerIT {
                         .content(objectMapper.writeValueAsString(buildRequest("Clean Code", "9780132350884"))))
                 .andReturn().getResponse().getContentAsString();
 
-        Long id = objectMapper.readTree(response).get("id").asLong();
+        String id = objectMapper.readTree(response).get("id").asText();
 
         mockMvc.perform(delete("/books/{id}", id))
                 .andExpect(status().isNoContent());

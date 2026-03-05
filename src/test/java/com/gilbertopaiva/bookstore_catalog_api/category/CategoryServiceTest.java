@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -30,10 +31,13 @@ class CategoryServiceTest {
     private Category category;
     private CategoryRequest categoryRequest;
 
+    private static final UUID CATEGORY_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
+    private static final UUID UNKNOWN_ID  = UUID.fromString("00000000-0000-0000-0000-000000000099");
+
     @BeforeEach
     void setUp() {
         category = Category.builder()
-                .id(1L)
+                .id(CATEGORY_ID)
                 .name("Fiction")
                 .description("Fiction books")
                 .build();
@@ -77,26 +81,26 @@ class CategoryServiceTest {
         @Test
         @DisplayName("deve retornar CategoryResponse quando categoria existe")
         void shouldReturnCategoryResponse_whenCategoryExists() {
-            when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
+            when(categoryRepository.findById(CATEGORY_ID)).thenReturn(Optional.of(category));
 
-            CategoryResponse response = categoryService.findById(1L);
+            CategoryResponse response = categoryService.findById(CATEGORY_ID);
 
             assertThat(response).isNotNull();
-            assertThat(response.id()).isEqualTo(1L);
+            assertThat(response.id()).isEqualTo(CATEGORY_ID);
             assertThat(response.name()).isEqualTo("Fiction");
-            verify(categoryRepository).findById(1L);
+            verify(categoryRepository).findById(CATEGORY_ID);
         }
 
         @Test
         @DisplayName("deve lançar CategoryNotFoundException quando categoria não existe")
         void shouldThrowCategoryNotFoundException_whenCategoryNotFound() {
-            when(categoryRepository.findById(99L)).thenReturn(Optional.empty());
+            when(categoryRepository.findById(UNKNOWN_ID)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> categoryService.findById(99L))
+            assertThatThrownBy(() -> categoryService.findById(UNKNOWN_ID))
                     .isInstanceOf(CategoryNotFoundException.class)
-                    .hasMessageContaining("99");
+                    .hasMessageContaining(UNKNOWN_ID.toString());
 
-            verify(categoryRepository).findById(99L);
+            verify(categoryRepository).findById(UNKNOWN_ID);
         }
     }
 
@@ -129,27 +133,27 @@ class CategoryServiceTest {
         void shouldUpdateAndReturnCategory_whenDataIsValid() {
             CategoryRequest updateRequest = new CategoryRequest("Science Fiction", "Sci-Fi books");
             Category updatedCategory = Category.builder()
-                    .id(1L).name("Science Fiction").description("Sci-Fi books").build();
+                    .id(CATEGORY_ID).name("Science Fiction").description("Sci-Fi books").build();
 
-            when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
+            when(categoryRepository.findById(CATEGORY_ID)).thenReturn(Optional.of(category));
             when(categoryRepository.save(any(Category.class))).thenReturn(updatedCategory);
 
-            CategoryResponse response = categoryService.update(1L, updateRequest);
+            CategoryResponse response = categoryService.update(CATEGORY_ID, updateRequest);
 
             assertThat(response.name()).isEqualTo("Science Fiction");
             assertThat(response.description()).isEqualTo("Sci-Fi books");
-            verify(categoryRepository).findById(1L);
+            verify(categoryRepository).findById(CATEGORY_ID);
             verify(categoryRepository).save(any(Category.class));
         }
 
         @Test
         @DisplayName("deve lançar CategoryNotFoundException quando categoria não existe no update")
         void shouldThrowCategoryNotFoundException_whenCategoryNotFoundOnUpdate() {
-            when(categoryRepository.findById(99L)).thenReturn(Optional.empty());
+            when(categoryRepository.findById(UNKNOWN_ID)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> categoryService.update(99L, categoryRequest))
+            assertThatThrownBy(() -> categoryService.update(UNKNOWN_ID, categoryRequest))
                     .isInstanceOf(CategoryNotFoundException.class)
-                    .hasMessageContaining("99");
+                    .hasMessageContaining(UNKNOWN_ID.toString());
 
             verify(categoryRepository, never()).save(any());
         }
@@ -163,23 +167,23 @@ class CategoryServiceTest {
         @Test
         @DisplayName("deve deletar categoria quando ela existe")
         void shouldDeleteCategory_whenCategoryExists() {
-            when(categoryRepository.existsById(1L)).thenReturn(true);
-            doNothing().when(categoryRepository).deleteById(1L);
+            when(categoryRepository.existsById(CATEGORY_ID)).thenReturn(true);
+            doNothing().when(categoryRepository).deleteById(CATEGORY_ID);
 
-            assertThatCode(() -> categoryService.delete(1L)).doesNotThrowAnyException();
+            assertThatCode(() -> categoryService.delete(CATEGORY_ID)).doesNotThrowAnyException();
 
-            verify(categoryRepository).existsById(1L);
-            verify(categoryRepository).deleteById(1L);
+            verify(categoryRepository).existsById(CATEGORY_ID);
+            verify(categoryRepository).deleteById(CATEGORY_ID);
         }
 
         @Test
         @DisplayName("deve lançar CategoryNotFoundException quando categoria não existe no delete")
         void shouldThrowCategoryNotFoundException_whenCategoryNotFoundOnDelete() {
-            when(categoryRepository.existsById(99L)).thenReturn(false);
+            when(categoryRepository.existsById(UNKNOWN_ID)).thenReturn(false);
 
-            assertThatThrownBy(() -> categoryService.delete(99L))
+            assertThatThrownBy(() -> categoryService.delete(UNKNOWN_ID))
                     .isInstanceOf(CategoryNotFoundException.class)
-                    .hasMessageContaining("99");
+                    .hasMessageContaining(UNKNOWN_ID.toString());
 
             verify(categoryRepository, never()).deleteById(any());
         }

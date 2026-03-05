@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -40,16 +41,20 @@ class BookServiceTest {
     private Book book;
     private BookRequest bookRequest;
 
+    private static final UUID CATEGORY_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
+    private static final UUID BOOK_ID     = UUID.fromString("00000000-0000-0000-0000-000000000002");
+    private static final UUID UNKNOWN_ID  = UUID.fromString("00000000-0000-0000-0000-000000000099");
+
     @BeforeEach
     void setUp() {
         category = Category.builder()
-                .id(1L)
+                .id(CATEGORY_ID)
                 .name("Fiction")
                 .description("Fiction books")
                 .build();
 
         book = Book.builder()
-                .id(1L)
+                .id(BOOK_ID)
                 .title("Clean Code")
                 .author("Robert C. Martin")
                 .isbn("9780132350884")
@@ -70,7 +75,7 @@ class BookServiceTest {
                 10,
                 "A book about clean code",
                 2008,
-                1L
+                CATEGORY_ID
         );
     }
 
@@ -82,27 +87,27 @@ class BookServiceTest {
         @Test
         @DisplayName("deve retornar BookResponse quando livro existe")
         void shouldReturnBookResponse_whenBookExists() {
-            when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+            when(bookRepository.findById(BOOK_ID)).thenReturn(Optional.of(book));
 
-            BookResponse response = bookService.findById(1L);
+            BookResponse response = bookService.findById(BOOK_ID);
 
             assertThat(response).isNotNull();
-            assertThat(response.id()).isEqualTo(1L);
+            assertThat(response.id()).isEqualTo(BOOK_ID);
             assertThat(response.title()).isEqualTo("Clean Code");
             assertThat(response.categoryName()).isEqualTo("Fiction");
-            verify(bookRepository).findById(1L);
+            verify(bookRepository).findById(BOOK_ID);
         }
 
         @Test
         @DisplayName("deve lançar BookNotFoundException quando livro não existe")
         void shouldThrowBookNotFoundException_whenBookNotFound() {
-            when(bookRepository.findById(99L)).thenReturn(Optional.empty());
+            when(bookRepository.findById(UNKNOWN_ID)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> bookService.findById(99L))
+            assertThatThrownBy(() -> bookService.findById(UNKNOWN_ID))
                     .isInstanceOf(BookNotFoundException.class)
-                    .hasMessageContaining("99");
+                    .hasMessageContaining(UNKNOWN_ID.toString());
 
-            verify(bookRepository).findById(99L);
+            verify(bookRepository).findById(UNKNOWN_ID);
         }
     }
 
@@ -153,26 +158,26 @@ class BookServiceTest {
         @Test
         @DisplayName("deve criar e retornar livro quando dados são válidos")
         void shouldCreateAndReturnBook_whenDataIsValid() {
-            when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
+            when(categoryRepository.findById(CATEGORY_ID)).thenReturn(Optional.of(category));
             when(bookRepository.save(any(Book.class))).thenReturn(book);
 
             BookResponse response = bookService.create(bookRequest);
 
             assertThat(response).isNotNull();
             assertThat(response.title()).isEqualTo("Clean Code");
-            assertThat(response.categoryId()).isEqualTo(1L);
-            verify(categoryRepository).findById(1L);
+            assertThat(response.categoryId()).isEqualTo(CATEGORY_ID);
+            verify(categoryRepository).findById(CATEGORY_ID);
             verify(bookRepository).save(any(Book.class));
         }
 
         @Test
         @DisplayName("deve lançar CategoryNotFoundException quando categoria não existe")
         void shouldThrowCategoryNotFoundException_whenCategoryNotFound() {
-            when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
+            when(categoryRepository.findById(CATEGORY_ID)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> bookService.create(bookRequest))
                     .isInstanceOf(CategoryNotFoundException.class)
-                    .hasMessageContaining("1");
+                    .hasMessageContaining(CATEGORY_ID.toString());
 
             verify(bookRepository, never()).save(any());
         }
@@ -194,21 +199,21 @@ class BookServiceTest {
                     5,
                     "Updated description",
                     2024,
-                    1L
+                    CATEGORY_ID
             );
 
             Book updatedBook = Book.builder()
-                    .id(1L).title("Clean Code 2nd Ed").author("Robert C. Martin")
+                    .id(BOOK_ID).title("Clean Code 2nd Ed").author("Robert C. Martin")
                     .isbn("9780132350884").price(new BigDecimal("69.90"))
                     .stockQuantity(5).category(category)
                     .createdAt(LocalDateTime.now()).updatedAt(LocalDateTime.now())
                     .build();
 
-            when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
-            when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
+            when(bookRepository.findById(BOOK_ID)).thenReturn(Optional.of(book));
+            when(categoryRepository.findById(CATEGORY_ID)).thenReturn(Optional.of(category));
             when(bookRepository.save(any(Book.class))).thenReturn(updatedBook);
 
-            BookResponse response = bookService.update(1L, updateRequest);
+            BookResponse response = bookService.update(BOOK_ID, updateRequest);
 
             assertThat(response.title()).isEqualTo("Clean Code 2nd Ed");
             assertThat(response.price()).isEqualByComparingTo("69.90");
@@ -218,11 +223,11 @@ class BookServiceTest {
         @Test
         @DisplayName("deve lançar BookNotFoundException quando livro não existe no update")
         void shouldThrowBookNotFoundException_whenBookNotFoundOnUpdate() {
-            when(bookRepository.findById(99L)).thenReturn(Optional.empty());
+            when(bookRepository.findById(UNKNOWN_ID)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> bookService.update(99L, bookRequest))
+            assertThatThrownBy(() -> bookService.update(UNKNOWN_ID, bookRequest))
                     .isInstanceOf(BookNotFoundException.class)
-                    .hasMessageContaining("99");
+                    .hasMessageContaining(UNKNOWN_ID.toString());
 
             verify(bookRepository, never()).save(any());
         }
@@ -236,23 +241,23 @@ class BookServiceTest {
         @Test
         @DisplayName("deve deletar livro quando ele existe")
         void shouldDeleteBook_whenBookExists() {
-            when(bookRepository.existsById(1L)).thenReturn(true);
-            doNothing().when(bookRepository).deleteById(1L);
+            when(bookRepository.existsById(BOOK_ID)).thenReturn(true);
+            doNothing().when(bookRepository).deleteById(BOOK_ID);
 
-            assertThatCode(() -> bookService.delete(1L)).doesNotThrowAnyException();
+            assertThatCode(() -> bookService.delete(BOOK_ID)).doesNotThrowAnyException();
 
-            verify(bookRepository).existsById(1L);
-            verify(bookRepository).deleteById(1L);
+            verify(bookRepository).existsById(BOOK_ID);
+            verify(bookRepository).deleteById(BOOK_ID);
         }
 
         @Test
         @DisplayName("deve lançar BookNotFoundException quando livro não existe no delete")
         void shouldThrowBookNotFoundException_whenBookNotFoundOnDelete() {
-            when(bookRepository.existsById(99L)).thenReturn(false);
+            when(bookRepository.existsById(UNKNOWN_ID)).thenReturn(false);
 
-            assertThatThrownBy(() -> bookService.delete(99L))
+            assertThatThrownBy(() -> bookService.delete(UNKNOWN_ID))
                     .isInstanceOf(BookNotFoundException.class)
-                    .hasMessageContaining("99");
+                    .hasMessageContaining(UNKNOWN_ID.toString());
 
             verify(bookRepository, never()).deleteById(any());
         }

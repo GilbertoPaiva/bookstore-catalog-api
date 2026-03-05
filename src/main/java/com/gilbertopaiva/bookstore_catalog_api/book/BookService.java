@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -36,7 +37,7 @@ public class BookService {
 
     @Cacheable(value = CacheConfig.CACHE_BOOK, key = "#id")
     @Transactional(readOnly = true)
-    public BookResponse findById(Long id) {
+    public BookResponse findById(UUID id) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new BookNotFoundException(id));
         return BookResponse.from(book);
@@ -69,7 +70,7 @@ public class BookService {
             @CacheEvict(value = CacheConfig.CACHE_BOOKS, allEntries = true)
     })
     @Transactional
-    public BookResponse update(Long id, BookRequest request) {
+    public BookResponse update(UUID id, BookRequest request) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new BookNotFoundException(id));
 
@@ -94,7 +95,7 @@ public class BookService {
             @CacheEvict(value = CacheConfig.CACHE_BOOKS, allEntries = true)
     })
     @Transactional
-    public void delete(Long id) {
+    public void delete(UUID id) {
         if (!bookRepository.existsById(id)) {
             throw new BookNotFoundException(id);
         }

@@ -4,9 +4,10 @@ import com.gilbertopaiva.bookstore_catalog_api.book.Book;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public record BookResponse(
-        Long id,
+        UUID id,
         String title,
         String author,
         String isbn,
@@ -14,7 +15,7 @@ public record BookResponse(
         Integer stockQuantity,
         String description,
         Integer publishedYear,
-        Long categoryId,
+        UUID categoryId,
         String categoryName,
         LocalDateTime createdAt,
         LocalDateTime updatedAt

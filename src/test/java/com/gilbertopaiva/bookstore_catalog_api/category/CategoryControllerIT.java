@@ -13,6 +13,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -42,7 +44,7 @@ class CategoryControllerIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").isNumber())
+                .andExpect(jsonPath("$.id").isString())
                 .andExpect(jsonPath("$.name").value("Fiction"))
                 .andExpect(jsonPath("$.description").value("Fiction books"));
     }
@@ -86,10 +88,11 @@ class CategoryControllerIT {
     @Test
     @DisplayName("GET /categories/{id} → 404 quando categoria não existe")
     void shouldReturn404_whenCategoryNotFound() throws Exception {
-        mockMvc.perform(get("/categories/{id}", 999L))
+        UUID unknownId = UUID.randomUUID();
+        mockMvc.perform(get("/categories/{id}", unknownId))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
-                .andExpect(jsonPath("$.message").value(containsString("999")));
+                .andExpect(jsonPath("$.message").value(containsString(unknownId.toString())));
     }
 
     @Test

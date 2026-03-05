@@ -3,6 +3,7 @@ package com.gilbertopaiva.bookstore_catalog_api.book.dto;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 public record BookRequest(
         @NotBlank(message = "Title is required")
@@ -31,6 +32,6 @@ public record BookRequest(
         Integer publishedYear,
 
         @NotNull(message = "Category ID is required")
-        Long categoryId
+        UUID categoryId
 ) {}
 
