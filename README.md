@@ -1,5 +1,6 @@
 # 📚 Bookstore Catalog API
 
+[![CI/CD — Bookstore Catalog](https://github.com/GilbertoPaiva/bookstore-catalog-api/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/GilbertoPaiva/bookstore-catalog-api/actions/workflows/deploy.yml)
 ![Java](https://img.shields.io/badge/Java-21-blue?logo=openjdk)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2.5-brightgreen?logo=springboot)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue?logo=postgresql)
