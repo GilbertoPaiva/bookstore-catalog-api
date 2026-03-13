@@ -13,6 +13,9 @@ API REST de catálogo de livros construída como **Projeto #3 do portfólio**. F
 Cache com Caffeine, paginação e filtros avançados com Spring Data, resolução do problema
 N+1 com `@EntityGraph`, IDs como **UUID**, Docker Compose e testes de integração com `@SpringBootTest`.
 
+## 🚀 Live Demo
+**API em produção:** https://api.gilbertopaiva.me/bookstore/swagger-ui/index.html
+
 ---
 
 ## 🗂️ Stack
@@ -27,8 +30,8 @@ N+1 com `@EntityGraph`, IDs como **UUID**, Docker Compose e testes de integraç�
 | Documentação   | SpringDoc OpenAPI 3 / Swagger UI        |
 | Testes         | JUnit 5 + Mockito + MockMvc (H2)        |
 | Containerização| Docker + Docker Compose                 |
-| Deploy         | Railway                                 |
-| Produção (Swagger) | [Swagger UI](http://209.97.147.6/bookstore/swagger-ui/index.html) |
+| Deploy         | Deployed on DigitalOcean Droplet (Ubuntu <br/>22.04) via Docker Compose + Nginx + GitHub Actions                                 |
+| Produção (Swagger) | [Swagger UI](https://api.gilbertopaiva.me/bookstore/swagger-ui/index.html) |
 
 ---
 
